@@ -1,6 +1,7 @@
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:emoji_picker/emoji_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_app/constants/strings.dart';
@@ -28,6 +29,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String _currentUserId;
   bool isWriting = false;
   ScrollController _listScrollController = ScrollController();
+  bool showEmojiPicker = false;
+  FocusNode textFieldFocus = FocusNode();
 
   @override
   void initState() {
@@ -46,6 +49,20 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+showKeyBoard() => textFieldFocus.requestFocus();
+  hidekeyBoard() => textFieldFocus.unfocus();
+
+  hideEmojiContainer(){
+    setState(() {
+      showEmojiPicker = false;
+    });
+  }
+
+showEmojiContainer(){
+    setState(() {
+      showEmojiPicker = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +75,24 @@ class _ChatScreenState extends State<ChatScreen> {
             child: messageList(),
           ),
           chatControls(),
+          showEmojiPicker ? Container(child: emojiContainer(),) : Container(),
         ],
       ),
+    );
+  }
+
+  emojiContainer() {
+    return EmojiPicker(
+      bgColor: UniversalVariables.separatorColor,
+      indicatorColor: UniversalVariables.blueColor,
+      rows: 3,
+      columns: 7,
+      onEmojiSelected: (emoji, category) {
+       setState(() {
+         isWriting = true;
+       });
+       textEditingController.text = textEditingController.text + emoji.emoji;
+      },
     );
   }
 
@@ -214,40 +247,58 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 5,
           ),
           Expanded(
-            child: TextField(
-              controller: textEditingController,
-              style: TextStyle(
-                color: Colors.white,
-              ),
-              onChanged: (val) {
-                (val.length > 0 && val.trim() != "")
-                    ? setWritingTo(true)
-                    : setWritingTo(false);
-              },
-              decoration: InputDecoration(
-                  hintText: "Type a Message",
-                  hintStyle: TextStyle(
-                      color: UniversalVariables.greyColor
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: const BorderRadius.all(
-                      const Radius.circular(50.0),
+            child: Stack(
+              alignment: Alignment.centerRight,
+              children: <Widget>[
+                TextField(
+                controller: textEditingController,
+                focusNode: textFieldFocus,
+                onTap: () => hideEmojiContainer(),
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+                onChanged: (val) {
+                  (val.length > 0 && val.trim() != "")
+                      ? setWritingTo(true)
+                      : setWritingTo(false);
+                },
+                decoration: InputDecoration(
+                    hintText: "Type a Message",
+                    hintStyle: TextStyle(
+                        color: UniversalVariables.greyColor
                     ),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 5
-                  ),
-                  filled: true,
-                  fillColor: UniversalVariables.separatorColor,
-                  suffixIcon: GestureDetector(
-                    onTap: () {},
-                    child: Icon(
-                        Icons.face
+                    border: OutlineInputBorder(
+                      borderRadius: const BorderRadius.all(
+                        const Radius.circular(50.0),
+                      ),
+                      borderSide: BorderSide.none,
                     ),
-                  )
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 5
+                    ),
+                    filled: true,
+                    fillColor: UniversalVariables.separatorColor,
+
+                ),
               ),
+                IconButton(
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onPressed: () {
+                    if(!showEmojiPicker){
+                      hidekeyBoard();
+                      showEmojiContainer();
+                    }else{
+                      showKeyBoard();
+                      hideEmojiContainer();
+                    }
+                  },
+                  icon: Icon(
+                      Icons.face
+                  ),
+                ),
+              ],
             ),
           ),
           isWriting

@@ -29,6 +29,7 @@ dependencies:
   google_sign_in: ^4.1.4
   shimmer: ^1.1.0
   gradient_app_bar: ^0.0.1
+  emoji_picker: ^0.1.0
 
 dev_dependencies:
   flutter_test:
